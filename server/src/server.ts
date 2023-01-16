@@ -1,6 +1,7 @@
 import express from 'express'
 import { PrismaClient } from '@prisma/client'
 import { convertHourStringToMinute } from './utils/convert-hour-string-to-minutes'
+import { convertMinutesToHourString } from './utils/convert-minutes-to-hour-string'
 
 const app = express()
 const prisma = new PrismaClient({
@@ -24,7 +25,7 @@ app.get('/games', async (req, res) => {
 })
 
 app.get('/games/:id/ads', async (req, res) => {
-    const gameId = req.params.id;
+    const gameId: any = req.params.id;
 
     const ads = await prisma.ad.findMany({
         select: {
@@ -44,7 +45,13 @@ app.get('/games/:id/ads', async (req, res) => {
         }
     })
 
-    return res.json(ads)
+    return res.json(ads.map(ad => {
+        return {
+            ...ad,
+            hourStart: convertMinutesToHourString(ad.hourStart),
+            hourEnd: convertMinutesToHourString(ad.hourEnd),
+        }
+    }))
 })
 
 app.post('/games/:id/ads', async (req, res) => {
