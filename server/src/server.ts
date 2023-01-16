@@ -7,21 +7,44 @@ const prisma = new PrismaClient({
 })
 
 app.get('/games', async (req, res) => {
-    const games = await prisma.game.findMany()
+    const games = await prisma.game.findMany({
+        include: {
+            _count: {
+                select: {
+                    ads: true
+                }
+            }
+        }
+    })
 
     return res.status(200).json(games)
 })
 
-app.get('games/:id/ads', (req, res) => {
-    return res.json([
-        { 'id': 1, name: 'Ad 1' },
-        { 'id': 2, name: 'Ad 2' },
-        { 'id': 3, name: 'Ad 3' },
-        { 'id': 4, name: 'Ad 4' },
-    ])
+app.get('/games/:id/ads', async (req, res) => {
+    const gameId = req.params.id;
+
+    const ads = await prisma.ad.findMany({
+        select: {
+            id: true,
+            name: true,
+            weekDays: true,
+            useVoiceChannel: true,
+            yearsPlaying: true,
+            hourStart: true,
+            hourEnd: true,
+        },
+        where: {
+            gameId
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    })
+
+    return res.json([ads])
 })
 
-app.get('ads/:id/discord', (req, res) => {
+app.get('/ads/:id/discord', (req, res) => {
     return res.json([
         { 'id': 1, name: 'Ad 1' },
         { 'id': 2, name: 'Ad 2' },
